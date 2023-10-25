@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 public class Player
 {
-    private int gold { get; set; } = 10;
-    private int life { get; set; } = 5;
+    public int gold { get; set; } = 10;
+    public int life { get; set; } = 5;
     public Card[] Cards { get; set; } = new Card[5];
-    public Store Store { get; set; }
+    public Store Store { get; set; } = new();
 
     public void Buy(int item)
     {
@@ -33,4 +33,7 @@ public class Player
         this.Cards[selectedCard].onSell();
         this.Cards[selectedCard] = null;
     }
+
+    public void GiveGold(int gold)
+        => this.gold += gold;
 }
