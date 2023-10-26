@@ -2,12 +2,23 @@ using System.Collections.Generic;
 
 public class Store
 {
-    public Card[] Cards { get; set; } = new Card[3];
+    public List<Card> Cards { get; set; } = new();
+
+    public void SetOwner(Player player)
+    {
+        foreach (Card card in this.Cards)
+        {
+            card.Player = player;
+        }
+    }
 
     public void RefreshStore(AvailableCards availableCards)
     {
+        this.Cards = new();
         for (int i = 0; i < 3; i++)
-            this.Cards[i] = availableCards.GetRandomCard();
+        {
+            this.Cards.Add(availableCards.GetRandomCard());
+        }
     }
     public Card Buy(int selectedCard)
     {

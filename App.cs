@@ -77,7 +77,10 @@ public abstract class App
         };
  
         Application.Run(form);
+        this.onStart();
     }
+
+    public virtual void onStart() {}
  
     public void DrawImage(Bitmap img, RectangleF location)
     {
@@ -92,10 +95,10 @@ public abstract class App
         var format = new StringFormat();
         format.Alignment = StringAlignment.Center;
         format.LineAlignment = StringAlignment.Center;
- 
+        
         var brush = new SolidBrush(color);
  
-        g.DrawString(text, SystemFonts.MenuFont, brush, location, format);
+        g.DrawString(text, new Font("Arial", 18, FontStyle.Bold), brush, location, format);
     }
  
     public RectangleF DrawPiece(RectangleF location,

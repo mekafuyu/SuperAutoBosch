@@ -23,10 +23,9 @@ public class ExampleApp : App
         this.Tier5 = tier5;
         this.Tier6 = tier6;
 
-        this.Game.availableCards.AddCards(Tier1);
-        this.Game.RefreshPlayerStore();
-        //this.SetStoreCards();
-        //SetStoreCards(this.Game.RefreshPlayerStore());
+        this.Game.AvailableCards.AddCards(Tier1);
+        this.Game.RefreshPlayerStore(true);
+        this.SetStoreCards(this.Game.Player);
     }
     public List<Card> Tier1 = null;
     public List<Card> Tier2 = null;
@@ -35,53 +34,72 @@ public class ExampleApp : App
     public List<Card> Tier5 = null;
     public List<Card> Tier6 = null;
     // bool fundiu = false;
-    Card selected = null;
+    public List<RectangleF> Store = new List<RectangleF>();
+    public List<RectangleF> DeckCards = new List<RectangleF>();
+    public Card selected = null;
     bool clicked = false;
     bool wasClicked = false;
     public Game Game { get; set; }
     RectangleF deck = new RectangleF(50, 600, 1000, 200);
     RectangleF joia = new RectangleF(1200, 800, 400, 400);
-    // RectangleF rect1 = RectangleF.Empty;
-    // RectangleF rect2 = RectangleF.Empty;
 
-    public void SetStoreCards()
+
+    public void SetStoreCards(Player player)
     {
-        this.Store = new();
+        this.Store = new List<RectangleF>();
 
-        for (int i = 0; i < this.Game.player.Store.Cards.Count(); i++)
+        for (int i = 0; i < player.Store.Cards.Count(); i++)
         {
-            var card = this.Game.player.Store.Cards[i];
+            var card = player.Store.Cards[i];
+
             if(card is not null)
-                Store.Add(
-                    DrawPiece(
-                        new RectangleF(200 * (i + 1), 50, 200, 200),
-                        card.Attack,
-                        card.Life,
-                        card.Experience,
-                        card.Tier,
-                        true,
-                        card.Name));
+                this.Store.Add(new RectangleF(200 * (i + 1), 50, 200, 200));
         }
     }
 
-    List<RectangleF> Store = new();
-
+    public override void onStart()
+    {
+    }
     public override void OnFrame(bool isDown, PointF cursor)
     {
-        DrawImage(new Bitmap(Image.FromFile("./imgs/deck.png")), deck);
+        // Desenhar Ouro e Vida
+        DrawImage(new Bitmap(Image.FromFile("../../../imgs/bggoldlife.jpg")), new RectangleF(0, 0, 200, 100));
+        DrawText($"Gold : {this.Game.Player.gold}", Color.Gold, new RectangleF(0, 20, 200, 30));
+        DrawText($"Lifes : {this.Game.Player.life}", Color.Red, new RectangleF(0, 50, 200, 30));
+
+        // Desenhar Deck
+        DrawImage(new Bitmap(Image.FromFile("../../../imgs/deck.png")), deck);
+
 
         for (int i = 0; i < this.Store.Count(); i++)
             if (this.Store[i].Contains(cursor) && !isDown && selected is null)
-                selected = this.Game.player.Store.Cards[i];
+                selected = this.Game.Player.Store.Cards[i];
 
 
-        // Desenha Loja
-        for (int i = 0; i < this.Game.player.Store.Cards.Count(); i++)
+        // Desenha Cartas Player
+        for (int i = 0; i < this.Game.Player.Cards.Count(); i++)
         {
-            var card = this.Game.player.Store.Cards[i];
+            var card = this.Game.Player.Cards[i];
             if (card is not null)
             DrawPiece(
-                new RectangleF(200 * (i + 1), 50, 200, 200),
+                new RectangleF(100 + 200 * i, 500, 200, 200),
+                card.Attack,
+                card.Life,
+                card.Experience,
+                card.Tier,
+                true,
+                card.Name);
+        }
+
+        // Desenha Loja
+        for (int i = 0; i < this.Game.Player.Store.Cards.Count(); i++)
+        {
+            var oldStore = this.Store;
+            this.Store = new();
+            var card = this.Game.Player.Store.Cards[i];
+            if (card is not null)
+            DrawPiece(
+                oldStore[i],
                 card.Attack,
                 card.Life,
                 card.Experience,
@@ -95,33 +113,45 @@ public class ExampleApp : App
         if (clicked && !wasClicked)
         {
             wasClicked = true;
-            this.Game.RefreshPlayerStore();
-            this.SetStoreCards();
+            this.Game.RefreshPlayerStore(false);
+            this.SetStoreCards(this.Game.Player);
         }
         if (!clicked)
             wasClicked = false;
 
-        
-        if(isDown)
-            DrawImage(new Bitmap(Image.FromFile("./imgs/joia.jpg")), joia);
 
-
-        for (int i = 0; i < this.Store.Count(); i++)
-            if (this.Store[i].Contains(cursor) && !isDown)
-                DrawImage(new Bitmap(Image.FromFile("./imgs/joia.jpg")), joia);
+        // for (int i = 0; i < this.Store.Count(); i++)
+        //     if (this.Store[i].Contains(cursor) && !isDown)
+        //         DrawImage(new Bitmap(Image.FromFile("../../../imgs/joia.jpg")), joia);
 
         for (int i = 0; i < this.Store.Count(); i++)
         {
             var cardG = this.Store[i];
-            
-            if (deck.Contains(cursor) && isDown)
-            {
-                //DrawImage(new Bitmap(Image.FromFile("./imgs/joia.jpg")), new RectangleF(200 * (i + 1), 50, 200, 200));
+            // if (cardG.Contains(cursor) && isDown)
+            // {
+            //     var card = this.Game.Player.Store.Cards[i];
+            //     var nome = card;
+            // }
 
-                this.Game.player.Store.Cards[i] = null;
-                this.Store.Remove(cardG);
+            if (cardG.Contains(cursor) && isDown && this.Game.Player.Store.Cards[i] is not null)
+            {
+                this.Game.Player.Buy(i);
+                this.SetStoreCards(this.Game.Player);
+                DrawImage(new Bitmap(Image.FromFile("../../../imgs/joia.jpg")), joia);
             }
         }
+        // for (int i = 0; i < this.Store.Count(); i++)
+        // {
+        //     var cardG = this.Store[i];
+            
+        //     if (deck.Contains(cursor) && isDown)
+        //     {
+        //         //DrawImage(new Bitmap(Image.FromFile("./imgs/joia.jpg")), new RectangleF(200 * (i + 1), 50, 200, 200));
+
+        //         this.Game.Player.Store.Cards = new();
+        //         this.Store = new();
+        //     }
+        // }
         
 
         //if (rect1.Contains(cursor) && rect2.Contains(cursor) && !isDown)
